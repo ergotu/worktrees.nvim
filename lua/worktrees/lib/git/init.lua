@@ -96,4 +96,11 @@ function M.run_async(opts)
   return GitCommand:new(opts):start()
 end
 
+---@return string[]
+function M.root()
+  return GitCommand:new({
+    args = { 'rev-parse', '--show-toplevel' },
+  })
+    :wait().stdout
+end
 return M
