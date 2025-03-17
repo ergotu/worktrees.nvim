@@ -1,8 +1,8 @@
+local config = require('worktrees.config')
 local M = {}
 
 function M.setup(opts)
-  -- Currently no-op, but provides standard entry point
-  -- for future configuration
+  config.setup(opts)
 end
 
 -- Core module exports for testing access

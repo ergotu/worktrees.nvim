@@ -1,3 +1,4 @@
+local config = require('worktrees.config')
 local levels = vim.log.levels
 
 local M = {}
@@ -8,9 +9,11 @@ local function create(message, level)
   message = type(message) == 'table' and table.concat(message, '\n') or message
   message = vim.trim(message)
 
-  vim.schedule(function()
-    vim.notify(message, level, { title = 'Worktrees' })
-  end)
+  if level >= config.values.level then
+    vim.schedule(function()
+      vim.notify(message, level, { title = 'Worktrees' })
+    end)
+  end
 end
 
 ---@param message string
