@@ -41,4 +41,8 @@ function M.trace(message)
   create(message, levels.TRACE)
 end
 
+function M.command_info(args)
+  M.info('Running command: git ' .. table.concat(args, ' '))
+end
+
 return M
