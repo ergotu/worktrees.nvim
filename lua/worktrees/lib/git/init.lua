@@ -96,4 +96,12 @@ function M.run_async(opts)
   return GitCommand:new(opts):start()
 end
 
+---@return string? Git root path
+function M.root()
+  local result = GitCommand:new({
+    args = { 'rev-parse', '--show-toplevel' },
+  }):wait()
+
+  return result.stdout[1] -- Return first line of stdout
+end
 return M
