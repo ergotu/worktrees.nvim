@@ -1,4 +1,5 @@
 local Job = require('plenary.job')
+local notification = require('worktrees.lib.notification')
 
 ---@class GitResult
 ---@field success boolean
@@ -84,12 +85,14 @@ end
 ---@param opts RunOpts
 ---@return GitResult
 function M.run(opts)
+  notification.command_debug(opts.args)
   return GitCommand:new(opts):wait()
 end
 
 ---@param opts RunOpts
 ---@return GitCommand
 function M.run_async(opts)
+  notification.command_debug(opts.args)
   return GitCommand:new(opts):start()
 end
 
