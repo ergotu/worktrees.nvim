@@ -104,4 +104,13 @@ function M.root()
 
   return result.stdout[1] -- Return first line of stdout
 end
+
+function M.is_bare()
+  local output = GitCommand:new({
+    args = { 'rev-parse', '--is-bare-repository' },
+  })
+    :wait().stdout
+  return output and output[1]:lower():gsub('%s+', '') == 'true'
+end
+
 return M
