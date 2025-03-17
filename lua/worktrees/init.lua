@@ -14,5 +14,6 @@ M.git = {
 }
 M.util = require('worktrees.lib.util')
 M.notification = require('worktrees.lib.notification')
+M.parser = require('worktrees.lib.parser')
 
 return M
