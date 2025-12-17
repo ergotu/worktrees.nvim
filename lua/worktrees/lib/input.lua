@@ -145,7 +145,7 @@ function M.select_ref(opts, callback)
         end
       end
       if opts.include_heads then
-        for _, branch in ipairs(refs.heads()) do
+        for _, branch in ipairs(refs.list_heads()) do
           table.insert(items, { name = branch, type = 'head' })
         end
       end
@@ -163,27 +163,38 @@ end
 
 ---@class WorktreeSelectorOpts
 ---@field prompt? string
----@field format? fun(wt: WorktreeEntry): string
+---@field format? fun(wt: Worktree): string
+---@field include_current? boolean  -- Include current worktree in selection
 
 ---@param opts WorktreeSelectorOpts
----@param callback fun(selected: WorktreeEntry?)
+---@param callback fun(selected: Worktree?)
 function M.select_worktree(opts, callback)
   local worktree = require('worktrees.lib.git.worktree')
-  local parser = require('worktrees.lib.parser')
   opts = vim.tbl_deep_extend('force', {
     prompt = 'Select worktree:',
+    include_current = true,
     format = function(wt)
-      local status = wt.is_bare and '󰨎 ' or '󰉋 '
-      local branch = wt.branch and string.format('(%s)', wt.branch) or ''
-      return string.format('%s %s %s', status, wt.folder, branch)
+      local branch_display = wt.branch and string.format('(%s)', wt.branch:match('[^/]+$'))
+        or '(detached)'
+      local folder = wt.path:match('[^/]+$')
+      return string.format('󰉋  %s %s', folder, branch_display)
     end,
   }, opts or {})
 
   M.select({
     prompt = opts.prompt,
     fetcher = function()
-      local raw = worktree.list()
-      return parser.parse_worktrees(raw) or {}
+      local worktrees = worktree.list() or {}
+
+      -- Filter out current worktree if requested
+      if not opts.include_current then
+        local cwd = vim.fn.getcwd()
+        worktrees = vim.tbl_filter(function(wt)
+          return wt.path ~= cwd
+        end, worktrees)
+      end
+
+      return worktrees
     end,
     formatter = opts.format,
     no_items_msg = 'No worktrees available',

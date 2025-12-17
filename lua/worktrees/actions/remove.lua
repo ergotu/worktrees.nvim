@@ -1,16 +1,32 @@
 local input = require('worktrees.lib.input')
 local notification = require('worktrees.lib.notification')
 local worktree = require('worktrees.lib.git.worktree')
-local actions = require('worktrees.actions.shared')
+local shared = require('worktrees.actions.shared')
+local config = require('worktrees.config')
+local recents = require('worktrees.lib.recents')
 
 local M = {}
 
 local function perform_remove(selected, force)
-  local result = worktree.remove(selected.path, { force = force }):wait()
+  -- Call before_remove hook
+  if config.values.hooks.before_remove then
+    config.values.hooks.before_remove(selected.path)
+  end
+
+  local result = worktree.remove(selected.path, { force = force })
 
   if result.success then
     notification.info('Removed worktree: ' .. selected.path)
-    actions.emit_event('Removed', { path = selected.path })
+
+    -- Remove from recents
+    recents.remove(selected.path)
+
+    shared.emit_event('Removed', { path = selected.path })
+
+    -- Call after_remove hook
+    if config.values.hooks.after_remove then
+      config.values.hooks.after_remove(selected.path)
+    end
   else
     if not force then
       notification.error(

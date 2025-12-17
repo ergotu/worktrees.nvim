@@ -89,6 +89,10 @@ end
 ---@param raw_output string[]|nil Raw command output
 ---@return WorktreeEntry[]|nil List of parsed worktree entries
 function M.parse_worktrees(raw_output)
+  if not raw_output then
+    return nil
+  end
+
   local blocks = parse_worktree_blocks(raw_output)
   if not blocks then
     return nil

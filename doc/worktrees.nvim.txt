@@ -1,60 +1,172 @@
-*nvim-plugin-template.nvim.txt*  For NVIM v0.8.0 Last change: 2025 February 12
+*worktrees.nvim.txt*  Git worktree management for Neovim  Last change: 2025 December 17
 
 ==============================================================================
-Table of Contents                *nvim-plugin-template.nvim-table-of-contents*
+Table of Contents                              *worktrees.nvim-table-of-contents*
 
-1. nvim-plugin-template       |nvim-plugin-template.nvim-nvim-plugin-template|
-  - Usage               |nvim-plugin-template.nvim-nvim-plugin-template-usage|
-  - Format             |nvim-plugin-template.nvim-nvim-plugin-template-format|
-  - Test                 |nvim-plugin-template.nvim-nvim-plugin-template-test|
-  - CI                     |nvim-plugin-template.nvim-nvim-plugin-template-ci|
-  - More                 |nvim-plugin-template.nvim-nvim-plugin-template-more|
-  - License MIT   |nvim-plugin-template.nvim-nvim-plugin-template-license-mit|
+1. Introduction                                      |worktrees.nvim-introduction|
+2. Features                                              |worktrees.nvim-features|
+3. Installation                                      |worktrees.nvim-installation|
+4. Usage                                                    |worktrees.nvim-usage|
+5. Commands                                              |worktrees.nvim-commands|
+6. Events                                                  |worktrees.nvim-events|
+7. Configuration                                    |worktrees.nvim-configuration|
+8. License                                                |worktrees.nvim-license|
 
 ==============================================================================
-1. nvim-plugin-template       *nvim-plugin-template.nvim-nvim-plugin-template*
+1. Introduction                                      *worktrees.nvim-introduction*
 
-Neovim plugin template; includes automatic documentation generation from
-README, integration tests with Busted, and linting with Stylua
+worktrees.nvim is a Neovim plugin for seamless git worktree management with
+buffer mirroring. It provides simple commands to add, switch, and remove git
+worktrees while preserving your buffer layout across switches.
 
+==============================================================================
+2. Features                                              *worktrees.nvim-features*
 
-USAGE                   *nvim-plugin-template.nvim-nvim-plugin-template-usage*
+- Easy Worktree Management: Add, switch, and remove git worktrees with simple
+  commands
+- Buffer Mirroring: Automatically mirrors your buffer layout when switching
+  worktrees
+- Event System: Emit autocmd events for custom workflows
+- Fast: Built with `vim.system()` for optimal performance
+- Type-Safe: Full LuaCATS annotations throughout
 
-1. Click `use this template` button generate a repo on your github.
-2. Clone your plugin repo. Open terminal then cd plugin directory.
-3. Run `python3 rename.py your-plugin-name`. This will replace all `nvim-plugin-template` to your `plugin-name`.
-Then it will prompt you input `y` or `n` to remove example codes in `init.lua` and
-`test/plugin_spec.lua`. If you are familiar this repo just input `y`. If you are looking at this template for the first time I suggest you inspect the contents. After this step `rename.py` will also auto-remove.
+==============================================================================
+3. Installation                                      *worktrees.nvim-installation*
 
-Now you have a clean plugin environment. Enjoy!
+Using lazy.nvim:
+>lua
+    {
+      'ergotu/worktrees.nvim',
+      config = function()
+        require('worktrees').setup({
+          level = vim.log.levels.INFO, -- Notification level
+        })
+      end,
+    }
+<
 
+==============================================================================
+4. Usage                                                    *worktrees.nvim-usage*
 
-FORMAT                 *nvim-plugin-template.nvim-nvim-plugin-template-format*
+Add a new worktree:
+>
+    :WorktreeAdd
+<
+- Enter a branch name
+- If the branch exists, checkout to that branch
+- If new, select a base reference (branch/tag/HEAD)
 
-The CI uses `stylua` to format the code; customize the formatting by editing
-`.stylua.toml`.
+Switch worktrees:
+>
+    :WorktreeSwitch
+<
+- Select from available worktrees
+- Your buffers will be mirrored to the new worktree
 
+Remove a worktree:
+>
+    :WorktreeRemove
+<
+- Select the worktree to remove (current worktree excluded)
+- Confirm the action
 
-TEST                     *nvim-plugin-template.nvim-nvim-plugin-template-test*
+==============================================================================
+5. Commands                                              *worktrees.nvim-commands*
 
-See Running tests locally
-<https://github.com/nvim-neorocks/nvim-busted-action?tab=readme-ov-file#running-tests-locally>
+                                                                  *:WorktreeAdd*
+:WorktreeAdd
+    Create a new git worktree. Prompts for a branch name and base reference
+    if creating a new branch. Automatically switches to the new worktree.
 
+                                                               *:WorktreeSwitch*
+:WorktreeSwitch
+    Switch to an existing worktree. Presents a list of available worktrees
+    for selection. Mirrors your buffer layout to the new worktree.
 
-CI                         *nvim-plugin-template.nvim-nvim-plugin-template-ci*
+                                                               *:WorktreeRemove*
+:WorktreeRemove
+    Remove an existing worktree. Presents a list of worktrees (excluding the
+    current one) and prompts for confirmation before removal.
 
-- Auto generates doc from README.
-- Runs the nvim-busted-action <https://github.com/nvim-neorocks/nvim-busted-action> for test.
-- Lints with `stylua`.
+==============================================================================
+6. Events                                                  *worktrees.nvim-events*
 
+worktrees.nvim emits User autocmd events that you can hook into for custom
+workflows:
 
-MORE                     *nvim-plugin-template.nvim-nvim-plugin-template-more*
+                                                               *WorktreeCreated*
+WorktreeCreated
+    Triggered when a new worktree is created.
+    Event data: { branch, path, previous_path, upstream? }
 
-To see this template in action, take a look at my other plugins.
+    Example:
+>lua
+    vim.api.nvim_create_autocmd('User', {
+      pattern = 'WorktreeCreated',
+      callback = function(event)
+        print('Created worktree at: ' .. event.data.path)
+      end
+    })
+<
 
+                                                              *WorktreeSwitched*
+WorktreeSwitched
+    Triggered when switching to a different worktree.
+    Event data: { path, previous_path }
 
-LICENSE MIT       *nvim-plugin-template.nvim-nvim-plugin-template-license-mit*
+    Example:
+>lua
+    vim.api.nvim_create_autocmd('User', {
+      pattern = 'WorktreeSwitched',
+      callback = function(event)
+        print('Switched from: ' .. event.data.previous_path)
+        print('Switched to: ' .. event.data.path)
+      end
+    })
+<
 
-Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
+                                                               *WorktreeRemoved*
+WorktreeRemoved
+    Triggered when a worktree is removed.
+    Event data: { path }
 
+    Example:
+>lua
+    vim.api.nvim_create_autocmd('User', {
+      pattern = 'WorktreeRemoved',
+      callback = function(event)
+        print('Removed worktree at: ' .. event.data.path)
+      end
+    })
+<
+
+==============================================================================
+7. Configuration                                    *worktrees.nvim-configuration*
+
+                                                              *worktrees.setup()*
+worktrees.setup({opts})
+    Setup function for worktrees.nvim. Call this in your config to initialize
+    the plugin.
+
+    Parameters:
+      {opts}  (table|nil) Configuration options
+
+    Fields:
+      {level}  (integer|nil) Notification log level. Defaults to
+               vim.log.levels.INFO. Can be set to vim.log.levels.DEBUG,
+               vim.log.levels.WARN, or vim.log.levels.ERROR.
+
+    Example:
+>lua
+    require('worktrees').setup({
+      level = vim.log.levels.INFO,
+    })
+<
+
+==============================================================================
+8. License                                                *worktrees.nvim-license*
+
+MIT License
+
+==============================================================================
 vim:tw=78:ts=8:noet:ft=help:norl:

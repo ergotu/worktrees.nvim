@@ -1,5 +1,4 @@
 local git = require('worktrees.lib.git')
-local util = require('worktrees.lib.util')
 
 ---@class ForEachRefOpts
 ---@field format? string
@@ -11,6 +10,7 @@ local util = require('worktrees.lib.util')
 
 local M = {}
 
+---Execute git for-each-ref command
 ---@param opts? ForEachRefOpts
 ---@return GitResult
 function M.for_each_ref(opts)
@@ -42,74 +42,95 @@ function M.for_each_ref(opts)
   })
 end
 
----@type fun(format?: string, sortby?: string, filter?: string[]): string[]
-local refs = util.memoize(function(format, sortby, filter)
-  return M.for_each_ref({
-    format = format or '%(refname)',
-    sort = sortby or '-committerdate',
-    patterns = filter or {},
-  }).stdout
-end)
+---List git references with optional filtering
+---@param patterns? string[] Patterns to match (e.g., {'refs/heads/', 'refs/remotes/'})
+---@param opts? {format?: string, sort?: string, cwd?: string}
+---@return string[]
+function M.list(patterns, opts)
+  opts = opts or {}
+  local result = M.for_each_ref({
+    format = opts.format or '%(refname:short)',
+    sort = opts.sort or '-committerdate',
+    patterns = patterns,
+    cwd = opts.cwd,
+  })
 
----@param namespaces? string[] Git ref namespaces to filter (e.g. '^refs/heads/')
----@param format? string Format string for for-each-ref
----@param sortby? string Sort key for references
----@return string[] List of simplified reference names
-function M.list(namespaces, format, sortby)
-  local patterns = util.map(namespaces or {}, function(namespace)
-    -- Remove leading '^' from namespace patterns
-    return namespace:sub(2, -1)
-  end)
-
-  return util.map(refs(format, sortby, patterns), function(full_ref)
-    -- Extract short name from full reference path
-    local ref, _ = full_ref:gsub('^refs/[^/]*/', '', 1)
-    return ref
-  end)
+  return result.success and result.stdout or {}
 end
 
----@return string[] List of tag names
-function M.list_tags()
-  return M.list({ '^refs/tags/' })
+---List all tags
+---@param opts? {cwd?: string}
+---@return string[]
+function M.list_tags(opts)
+  return M.list({ 'refs/tags/' }, opts)
 end
 
----@return string[] List of all branch names (local and remote)
-function M.list_branches()
-  return util.merge(M.list_local_branches(), M.list_remote_branches())
-end
+---List all branches (local and remote)
+---@param opts? {cwd?: string}
+---@return string[]
+function M.list_branches(opts)
+  local local_branches = M.list_local_branches(opts)
+  local remote_branches = M.list_remote_branches(nil, opts)
 
----@return string[] List of local branch names
-function M.list_local_branches()
-  return M.list({ '^refs/heads/' })
-end
-
----@param remote? string Filter remote branches by specific remote
----@return string[] List of remote branch names
-function M.list_remote_branches(remote)
-  local remote_branches = M.list({ '^refs/remotes/' })
-
-  if not remote then
-    return remote_branches
+  local all_branches = {}
+  for _, branch in ipairs(local_branches) do
+    table.insert(all_branches, branch)
+  end
+  for _, branch in ipairs(remote_branches) do
+    table.insert(all_branches, branch)
   end
 
-  local remote_prefix = '^' .. vim.pesc(remote) .. '/'
-  return vim.tbl_filter(function(branch)
-    return branch:match(remote_prefix)
-  end, remote_branches)
+  return all_branches
 end
 
-M.heads = util.memoize(function()
+---List local branches
+---@param opts? {cwd?: string}
+---@return string[]
+function M.list_local_branches(opts)
+  return M.list({ 'refs/heads/' }, opts)
+end
+
+---List remote branches
+---@param remote? string Filter by specific remote
+---@param opts? {cwd?: string}
+---@return string[]
+function M.list_remote_branches(remote, opts)
+  local branches = M.list({ 'refs/remotes/' }, opts)
+
+  if not remote then
+    return branches
+  end
+
+  local filtered = {}
+  local prefix = remote .. '/'
+  for _, branch in ipairs(branches) do
+    if branch:sub(1, #prefix) == prefix then
+      table.insert(filtered, branch)
+    end
+  end
+
+  return filtered
+end
+
+---List special HEAD references
+---@param opts? {cwd?: string}
+---@return string[]
+function M.list_heads(opts)
+  opts = opts or {}
   local heads = { 'HEAD', 'ORIG_HEAD', 'FETCH_HEAD', 'MERGE_HEAD', 'CHERRY_PICK_HEAD' }
   local present = {}
 
   for _, head in ipairs(heads) do
-    local result = git.run({ args = { 'rev-parse', '--verify', '--quiet', head } })
+    local result = git.run({
+      args = { 'rev-parse', '--verify', '--quiet', head },
+      cwd = opts.cwd,
+    })
     if result.success then
       table.insert(present, head)
     end
   end
 
   return present
-end)
+end
 
 return M

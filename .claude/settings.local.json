@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__serena__initial_instructions",
+      "mcp__serena__check_onboarding_performed",
+      "mcp__serena__onboarding",
+      "mcp__serena__list_dir",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__write_memory",
+      "mcp__serena__find_file",
+      "mcp__serena__find_symbol",
+      "mcp__sequential-thinking__sequentialthinking",
+      "mcp__context7__resolve-library-id",
+      "WebSearch",
+      "Bash(stylua:*)",
+      "Bash(busted --verbose:*)",
+      "Bash(busted test:*)",
+      "Bash(busted test/lib/git/init_spec.lua:*)",
+      "mcp__serena__think_about_task_adherence",
+      "mcp__serena__think_about_whether_you_are_done",
+      "mcp__serena__read_memory",
+      "mcp__serena__search_for_pattern",
+      "mcp__context7__get-library-docs",
+      "mcp__serena__list_memories"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

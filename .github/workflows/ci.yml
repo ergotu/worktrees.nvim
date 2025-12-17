@@ -1,34 +1,32 @@
-name: Ci
+name: CI
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
-  lint:
+  nix-checks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Stylua
-        uses: JohnnyMorganz/stylua-action@v3
+      - uses: actions/checkout@v4
+      - uses: cachix/install-nix-action@v26
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          version: latest
-          args: --check .
+          nix_path: nixpkgs=channel:nixos-unstable
+      - name: Run Nix flake checks
+        run: nix flake check --print-build-logs
 
   docs:
     runs-on: ubuntu-latest
-    name: pandoc to vimdoc
+    name: Generate vimdoc
     if: ${{ github.ref == 'refs/heads/main' }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: panvimdoc
         uses: kdheepak/panvimdoc@main
         with:
-          vimdoc: worktrees.nvim.nvim
+          vimdoc: worktrees.nvim
           treesitter: true
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "chore(doc): auto generate docs"
           commit_user_name: "github-actions[bot]"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "github-actions[bot] <github-actions[bot]@users.noreply.github.com>"
-com>"

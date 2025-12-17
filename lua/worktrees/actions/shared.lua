@@ -8,6 +8,7 @@ M.previous_worktree_path = nil
 ---@param new_path string
 ---@param previous_path string
 local function create_mirrored_buffers(new_path, previous_path)
+  local config = require('worktrees.config')
   local buffers_to_delete = {}
 
   for _, buf in ipairs(vim.api.nvim_list_bufs()) do
@@ -25,10 +26,12 @@ local function create_mirrored_buffers(new_path, previous_path)
     end
   end
 
-  -- Delete buffers after iteration to avoid issues
-  for _, buf in ipairs(buffers_to_delete) do
-    if vim.api.nvim_buf_is_valid(buf) then
-      vim.api.nvim_buf_delete(buf, { force = true })
+  -- Delete buffers only if configured
+  if config.values.buffer_behavior.auto_delete_old then
+    for _, buf in ipairs(buffers_to_delete) do
+      if vim.api.nvim_buf_is_valid(buf) then
+        vim.api.nvim_buf_delete(buf, { force = true })
+      end
     end
   end
 end
@@ -41,6 +44,7 @@ function M.switch_to_worktree(path)
     return
   end
 
+  local config = require('worktrees.config')
   local previous_path = vim.uv.cwd()
   if path == previous_path then
     return notification.warn('Already in the requested worktree')
@@ -53,7 +57,8 @@ function M.switch_to_worktree(path)
     vim.cmd('cd ' .. path)
     vim.cmd('clearjumps')
 
-    if M.previous_worktree_path then
+    -- Buffer mirroring based on config
+    if config.values.buffer_behavior.mirror and M.previous_worktree_path then
       create_mirrored_buffers(path, M.previous_worktree_path)
     end
 
@@ -61,11 +66,14 @@ function M.switch_to_worktree(path)
   end)
 end
 
----@alias WorktreeEvent 'Created'|'Switched'|'Removed'
+---@alias WorktreeEvent 'Created'|'Switched'|'Removed'|'Moved'
 ---@alias WorktreeEventData {
 ---  branch?: string,  -- Only for Created events
 ---  upstream?: string, -- Only for Created events from remotes
----  path: string }
+---  path: string,
+---  old_path?: string, -- Only for Moved events
+---  new_path?: string, -- Only for Moved events
+---  previous_path?: string } -- For Created and Switched events
 
 ---Emit worktree-related autocmd events
 ---@param event WorktreeEvent
