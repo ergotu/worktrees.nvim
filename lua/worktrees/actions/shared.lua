@@ -54,7 +54,7 @@ function M.switch_to_worktree(path)
     -- Store previous before changing directory
     M.previous_worktree_path = previous_path
 
-    vim.cmd('cd ' .. path)
+    vim.cmd('cd ' .. vim.fn.fnameescape(path))
     vim.cmd('clearjumps')
 
     -- Buffer mirroring based on config
