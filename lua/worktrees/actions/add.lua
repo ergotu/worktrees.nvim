@@ -12,7 +12,21 @@ local M = {}
 
 -- Validation helpers
 local function validate_branch_name(branch_name)
-  return branch_name and branch_name:gsub('%s+', '') ~= ''
+  if not branch_name or branch_name:gsub('%s+', '') == '' then
+    return false
+  end
+  -- Git branch name rules
+  if
+    branch_name:match('%.%.')
+    or branch_name:match('[~^: ?*%[\\]@{]')
+    or branch_name:match('^/')
+    or branch_name:match('/$')
+    or branch_name:match('//')
+    or branch_name:match('@$')
+  then
+    return false
+  end
+  return true
 end
 
 -- Alias expansion
