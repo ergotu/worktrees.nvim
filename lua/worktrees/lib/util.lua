@@ -71,8 +71,10 @@ function M.memoize(f, opts)
     if cache[key] == nil then
       cache[key] = f(...)
     elseif timer[key] ~= nil then
-      timer[key]:stop()
-      timer[key]:close()
+      if not timer[key]:is_closing() then
+        timer[key]:stop()
+        timer[key]:close()
+      end
     end
 
     timer[key] = set_timeout(opts.timeout or DEFAULT_TIMEOUT, function()
