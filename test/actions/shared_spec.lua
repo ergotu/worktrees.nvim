@@ -53,6 +53,18 @@ describe('actions.shared', function()
         fnameescape = function(path)
           return path:gsub(' ', '\\ ')
         end,
+        getbufinfo = function(opts)
+          local bufinfo = {}
+          for id, buf in pairs(buffers) do
+            if not opts or not opts.buflisted or buf.buflisted then
+              table.insert(bufinfo, {
+                bufnr = id,
+                name = buf.name or '',
+              })
+            end
+          end
+          return bufinfo
+        end,
       },
       inspect = function(tbl)
         -- Simple mock implementation to avoid recursion

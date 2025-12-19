@@ -21,7 +21,11 @@
       "mcp__serena__read_memory",
       "mcp__serena__search_for_pattern",
       "mcp__context7__get-library-docs",
-      "mcp__serena__list_memories"
+      "mcp__serena__list_memories",
+      "mcp__pal__listmodels",
+      "mcp__pal__codereview",
+      "mcp__serena__find_referencing_symbols",
+      "mcp__serena__replace_symbol_body"
     ],
     "deny": [],
     "ask": []

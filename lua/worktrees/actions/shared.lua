@@ -11,9 +11,11 @@ local function create_mirrored_buffers(new_path, previous_path)
   local config = require('worktrees.config')
   local buffers_to_delete = {}
 
-  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_valid(buf) and vim.bo[buf].buflisted then
-      local filename = vim.api.nvim_buf_get_name(buf)
+  -- Use getbufinfo to only iterate listed buffers (performance optimization)
+  for _, bufinfo in ipairs(vim.fn.getbufinfo({ buflisted = 1 })) do
+    local buf = bufinfo.bufnr
+    if vim.api.nvim_buf_is_valid(buf) then
+      local filename = bufinfo.name
       if filename:find(previous_path, 1, true) == 1 then
         local relative_path = filename:sub(#previous_path + 2)
         local new_file = new_path .. '/' .. relative_path
