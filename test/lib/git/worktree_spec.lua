@@ -146,14 +146,15 @@ describe('lib.git.worktree', function()
       assert.is_nil(worktrees[1].branch)
     end)
 
-    it('returns empty table on git failure', function()
+    it('returns nil and error message on git failure', function()
       git_mock.run = function(opts)
-        return { success = false, stdout = {}, stderr = { 'error' } }
+        return { success = false, stdout = {}, stderr = { 'fatal: not a git repository' } }
       end
 
-      local worktrees = worktree.list()
+      local worktrees, err = worktree.list()
 
-      assert.are.same({}, worktrees)
+      assert.is_nil(worktrees)
+      assert.equals('fatal: not a git repository', err)
     end)
 
     it('passes cwd option to git', function()

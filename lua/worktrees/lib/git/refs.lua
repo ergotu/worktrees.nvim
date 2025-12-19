@@ -55,7 +55,11 @@ function M.list(patterns, opts)
     cwd = opts.cwd,
   })
 
-  return result.success and result.stdout or {}
+  if result.success then
+    return result.stdout
+  else
+    return nil, table.concat(result.stderr, '\n')
+  end
 end
 
 ---List all tags

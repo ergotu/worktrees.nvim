@@ -64,6 +64,10 @@ function M.get_current_worktree()
   local worktree_mod = require('worktrees.lib.git.worktree')
   local worktrees = worktree_mod.list()
 
+  if not worktrees then
+    return nil
+  end
+
   for _, wt in ipairs(worktrees) do
     if wt.path == cwd then
       return wt.path

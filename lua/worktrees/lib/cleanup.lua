@@ -15,7 +15,14 @@ function M.get_stale()
     return {}
   end
 
-  local worktrees = worktree.list()
+  local worktrees, err = worktree.list()
+  if not worktrees then
+    if err then
+      require('worktrees.lib.notification').warn('Failed to list worktrees: ' .. err)
+    end
+    return {}
+  end
+
   local stale_days = config.values.cleanup.stale_days
   local now = os.time()
   local stale = {}

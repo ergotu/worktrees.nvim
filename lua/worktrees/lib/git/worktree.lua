@@ -61,7 +61,7 @@ function M.list(opts)
   })
 
   if not result.success then
-    return {}
+    return nil, table.concat(result.stderr, '\n')
   end
 
   local worktrees = {}

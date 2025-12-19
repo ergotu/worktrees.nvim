@@ -68,9 +68,12 @@ local function handle_existing_path(path)
   end
 
   -- Is existing worktree
-  if #worktree.list({ cwd = path }) > 0 then
+  local worktrees, err = worktree.list({ cwd = path })
+  if worktrees and #worktrees > 0 then
     shared.switch_to_worktree(path)
     return false
+  elseif err then
+    notification.warn('Failed to check existing worktree: ' .. err)
   end
 
   if not input.get_confirmation('Path exists - overwrite?', { default = 2 }) then
