@@ -45,6 +45,8 @@ function M.read_json(filename)
 
   local ok, decoded = pcall(vim.json.decode, content)
   if not ok then
+    local notification = require('worktrees.lib.notification')
+    notification.warn('Failed to parse ' .. filename .. ': ' .. tostring(decoded))
     return nil
   end
 
@@ -60,6 +62,8 @@ function M.write_json(filename, data)
 
   local ok, encoded = pcall(vim.json.encode, data)
   if not ok then
+    local notification = require('worktrees.lib.notification')
+    notification.warn('Failed to encode ' .. filename .. ': ' .. tostring(encoded))
     return false
   end
 

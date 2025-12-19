@@ -42,6 +42,19 @@ describe('lib.persistence', function()
           return { test = 'data' }
         end,
       },
+      log = {
+        levels = {
+          WARN = 3,
+          INFO = 2,
+        },
+      },
+      notify = function() end,
+      trim = function(s)
+        return s:match('^%s*(.-)%s*$')
+      end,
+      schedule = function(fn)
+        fn()
+      end,
     }
 
     io_mock = {
