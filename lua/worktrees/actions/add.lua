@@ -18,7 +18,7 @@ local function validate_branch_name(branch_name)
   -- Git branch name rules
   if
     branch_name:match('%.%.')
-    or branch_name:match('[~^: ?*%[\\]@{]')
+    or branch_name:match('[~^: ?*%[%]@{\\]')
     or branch_name:match('^/')
     or branch_name:match('/$')
     or branch_name:match('//')
