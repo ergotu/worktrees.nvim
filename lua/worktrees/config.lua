@@ -110,13 +110,27 @@ local function deep_extend(...)
   if vim.tbl_deep_extend then
     return vim.tbl_deep_extend(...)
   end
-  -- Fallback for test environments
+  -- Fallback for test environments with proper deep merging
+  local behavior = select(1, ...)
   local result = {}
+
   for i = 2, select('#', ...) do
     local t = select(i, ...)
     if t then
       for k, v in pairs(t) do
-        result[k] = v
+        if type(v) == 'table' and type(result[k]) == 'table' then
+          -- Recursively merge nested tables
+          if behavior == 'force' then
+            result[k] = deep_extend(behavior, result[k], v)
+          else
+            -- For 'error' or 'keep', vim.tbl_deep_extend would check for conflicts
+            -- For simplicity in tests, we'll just do force merge
+            result[k] = deep_extend('force', result[k], v)
+          end
+        else
+          -- Overwrite with new value
+          result[k] = v
+        end
       end
     end
   end
